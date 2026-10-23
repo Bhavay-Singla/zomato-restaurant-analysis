@@ -34,7 +34,7 @@ The source project reports 9,551 restaurants and 21 restaurant-data columns. Res
 
 | File | Description |
 | --- | --- |
-| SQL queries file | Numbered analytical queries, Q1–Q12. |
+| SQL queries file | Numbered analytical queries, Q1–Q10. |
 | Schema file | MySQL definitions for the restaurant and country lookup tables. |
 | Dashboard image | A visual summary of the analysis. |
 
@@ -107,53 +107,7 @@ LIMIT 20;
 
 **Objective:** Identify the 20 cities with the highest restaurant counts.
 
-### Q3. Most Common Cuisines
-
-```sql
-WITH exploded AS (
-    SELECT TRIM(jt.cuisine) AS cuisine
-    FROM restaurants r
-    CROSS JOIN JSON_TABLE(
-        CONCAT('[', REPLACE(JSON_QUOTE(COALESCE(r.Cuisines, '')), ',', '","'), ']'),
-        '$[*]' COLUMNS (cuisine VARCHAR(255) PATH '$')
-    ) AS jt
-    WHERE r.Cuisines IS NOT NULL
-)
-SELECT cuisine, COUNT(*) AS restaurant_count
-FROM exploded
-GROUP BY cuisine
-ORDER BY restaurant_count DESC
-LIMIT 20;
-```
-
-**Objective:** Split comma-separated cuisine lists and count the number of restaurant entries for each cuisine.
-
-### Q4. Highest-Rated Cuisines
-
-```sql
-WITH exploded AS (
-    SELECT TRIM(jt.cuisine) AS cuisine, r.`Aggregate rating` AS rating
-    FROM restaurants r
-    CROSS JOIN JSON_TABLE(
-        CONCAT('[', REPLACE(JSON_QUOTE(COALESCE(r.Cuisines, '')), ',', '","'), ']'),
-        '$[*]' COLUMNS (cuisine VARCHAR(255) PATH '$')
-    ) AS jt
-    WHERE r.Cuisines IS NOT NULL AND r.`Aggregate rating` > 0
-)
-SELECT
-    cuisine,
-    COUNT(*) AS restaurant_count,
-    ROUND(AVG(rating), 2) AS avg_rating
-FROM exploded
-GROUP BY cuisine
-HAVING COUNT(*) >= 20
-ORDER BY avg_rating DESC
-LIMIT 20;
-```
-
-**Objective:** Rank cuisines by average rating, considering only rated restaurants and cuisines with at least 20 restaurant entries.
-
-### Q5. Relationship Between Cost and Rating
+### Q3. Relationship Between Cost and Rating
 
 ```sql
 WITH paired_values AS (
@@ -202,7 +156,7 @@ FROM correlations;
 
 **Objective:** Calculate Pearson correlations for cost versus rating and price range versus rating. The formula is expressed through MySQL aggregates.
 
-### Q6. Average Rating by Price Range
+### Q4. Average Rating by Price Range
 
 ```sql
 SELECT
@@ -217,7 +171,7 @@ ORDER BY price_range;
 
 **Objective:** Compare restaurant counts, average ratings, and costs across the dataset's price ranges.
 
-### Q7. Restaurant Rating Distribution
+### Q5. Restaurant Rating Distribution
 
 ```sql
 SELECT
@@ -232,7 +186,7 @@ ORDER BY avg_rating DESC;
 
 **Objective:** Summarise rated restaurants by their rating categories.
 
-### Q8. Best-Value Restaurants
+### Q6. Best-Value Restaurants
 
 ```sql
 SELECT
@@ -250,7 +204,7 @@ LIMIT 20;
 
 **Objective:** Find restaurants rated at least 4.0 and rank them using rating divided by cost. Compare the scores within the same currency before interpreting value.
 
-### Q9. Online Delivery and Restaurant Ratings
+### Q7. Online Delivery and Restaurant Ratings
 
 ```sql
 SELECT
@@ -264,7 +218,7 @@ GROUP BY `Has Online delivery`;
 
 **Objective:** Compare average ratings and votes between restaurants with and without online delivery.
 
-### Q10. Table Booking and Restaurant Ratings
+### Q8. Table Booking and Restaurant Ratings
 
 ```sql
 SELECT
@@ -278,7 +232,7 @@ GROUP BY `Has Table booking`;
 
 **Objective:** Compare average ratings and costs between restaurants with and without table booking.
 
-### Q11. List Available Cities
+### Q9. List Available Cities
 
 ```sql
 SELECT DISTINCT City AS city
@@ -288,7 +242,7 @@ ORDER BY city;
 
 **Objective:** Retrieve distinct city names that can be used as filter options.
 
-### Q12. Filter Restaurants by City and Minimum Rating
+### Q10. Filter Restaurants by City and Minimum Rating
 
 ```sql
 SET @city = NULL;
@@ -321,7 +275,7 @@ The uploaded dashboard image provides a visual overview of the restaurant analys
 2. Create or select a database in MySQL 8.0 or later.
 3. Run the schema file to create the tables.
 4. Import `zomato.csv` into `restaurants`. Export the country lookup from Excel to CSV before importing it into `country_codes`.
-5. Run the numbered SQL queries. For Q12, update the city and minimum-rating variables as needed.
+5. Run the numbered SQL queries. For Q10, update the city and minimum-rating variables as needed.
 6. Review the query outputs alongside the dashboard image.
 
 ## Findings and Conclusion
